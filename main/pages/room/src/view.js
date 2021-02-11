@@ -18,11 +18,16 @@ class View {
     if(srcObject) {
       video.addEventListener('loadedmetadata', _ => video.play())
     }
+    
     return video
   }
 
-  renderVideo({ userID, stream = null, url = null, isCurrentID = false }) {
-    const video = this.createVideoElement({ src: url, srcObject: stream })
+  renderVideo({ userID, stream = null, url = null, isCurrentID = false, muted = true }) {
+    const video = this.createVideoElement({ 
+      muted,
+      src: url, 
+      srcObject: stream 
+    })
     this.appendToHTMLTree(userID, video, isCurrentID)
   }
 

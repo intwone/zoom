@@ -14,7 +14,21 @@ const onload = () => {
   // const recorderBtn = document.getElementById('record')
   // recorderBtn.addEventListener('click', recordClick(recorderBtn))
 
+  /**
+   * Transforma determinado objeto em um array contendo valores de cada chave
+   */
+  const peerConfig = Object.values({
+    id: undefined,
+    config: {
+      port: 9000,
+      host: 'localhost',
+      path: '/'
+    }
+  })
+
   const socketURL = 'http://localhost:3000'
+  
+  const peerBuilder = new PeerBuilder({ peerConfig })
   const socketBuilder = new SocketBuilder({ socketURL })
   const view = new View()
   const media = new Media()
@@ -23,7 +37,8 @@ const onload = () => {
     room,
     media, 
     view,
-    socketBuilder
+    socketBuilder, 
+    peerBuilder
   }
 
   Business.initialize(dependencies)

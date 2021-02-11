@@ -1,15 +1,15 @@
 class Business {
-  constructor({ room, media, view, socketBuilder }) {
+  constructor({ room, media, view, socketBuilder, peerBuilder }) {
     this.room = room
     this.media = media
     this.view = view
+    
     this.socketBuilder = socketBuilder
-      .setOnUserConnected(this.onUserConnected())
-      .setOnUserDisconnected(this.onUserDisconnected())
-      .build()
+    this.peerBuilder = peerBuilder
 
-    this.socketBuilder.emit('join-room', this.room, 'teste01')
-    this.currentStream = { }
+    this.socket = {  }
+    this.currentStream = {  }
+    this.currentPeer = {  }
   }
 
   static initialize(dependencies) {
@@ -20,6 +20,17 @@ class Business {
 
   async _init() {
     this.currentStream = await this.media.getCamera()
+
+    this.socket = this.socketBuilder
+      .setOnUserConnected(this.onUserConnected())
+      .setOnUserDisconnected(this.onUserDisconnected())
+      .build()
+
+    this.currentPeer = this.peerBuilder
+      .setOnError(this.onPeerError())
+      .setOnConnectionOpened(this.onPeerConnectionOpened())
+      .build()
+
     this.addVideoStream('test01')
   }
 
@@ -41,7 +52,21 @@ class Business {
 
   onUserDisconnected = function() {
     return (userID) => {
-      console.log('user-discnnected!', userID)
+      console.log('user-disconnected!', userID)
+    }
+  }
+
+  onPeerError = function() {
+    return (error) => {
+      console.log('error on peer!', error)
+    }
+  }
+
+  onPeerConnectionOpened = function() {
+    return (peer) => {
+      const id = peer.id 
+      console.log('peer!!!', peer);
+      this.socket.emit('join-room', this.room, id)
     }
   }
 }
