@@ -58,7 +58,7 @@ class Business {
 
   onPeerError = function() {
     return (error) => {
-      console.log('error on peer!', error)
+    console.log('error on peer!', error)
     }
   }
 
