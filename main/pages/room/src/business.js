@@ -33,9 +33,11 @@ class Business {
       .setOnConnectionOpened(this.onPeerConnectionOpened())
       .setOnCallReceived(this.onPeerCallReceived())
       .setOnPeerStreamReceived(this.onPeerStreamReceived())
+      .setOnCallError(this.onPeerCallError())
+      .setOnCallClose(this.onPeerCallClose())
       .build()
 
-    this.addVideoStream('test01')
+    this.addVideoStream(this.currentPeer.id)
   }
 
   addVideoStream(userID, stream = this.currentStream) {
@@ -48,26 +50,34 @@ class Business {
     }) 
   }
 
-  onUserConnected = function() {
+  onUserConnected() {
     return (userID) => {
       console.log('user-connected!', userID)
       this.currentPeer.call(userID, this.currentStream)
     }
   }
 
-  onUserDisconnected = function() {
+  onUserDisconnected() {
     return (userID) => {
       console.log('user-disconnected!', userID)
+
+      if(this.peers.has(userID)) {
+        this.peers.get(userID).call.close()
+        this.peers.delete(userID)
+      }
+
+      this.view.setParticipants(this.peers.size)
+      this.view.removeVideoElement(userID)
     }
   }
 
-  onPeerError = function() {
+  onPeerError() {
     return (error) => {
     console.log('error on peer!', error)
     }
   }
 
-  onPeerConnectionOpened = function() {
+  onPeerConnectionOpened() {
     return (peer) => {
       const id = peer.id 
       console.log('peer!!!', peer);
@@ -75,19 +85,32 @@ class Business {
     }
   }
 
-  onPeerCallReceived = function() {
+  onPeerCallReceived() {
     return (call) => {
       console.log('answering call', call)
       call.answer(this.currentStream)
     }
   }
 
-  onPeerStreamReceived = function() {
+  onPeerStreamReceived() {
     return (call, stream) => {
       const callerID = call.peer
       this.addVideoStream(callerID, stream)  
       this.peers.set(callerID, { call })
       this.view.setParticipants (this.peers.size)
+    }
+  }
+
+  onPeerCallError() {
+    return (call, error) => {
+      console.log('an call error ocurred!', error)
+      this.view.removeVideoElement(call.peer)
+    }
+  }
+
+  onPeerCallClose() {
+    return (call) => {
+      console.log('call closed!', call.peer)
     }
   }
 }
