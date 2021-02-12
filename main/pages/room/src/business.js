@@ -10,6 +10,8 @@ class Business {
     this.socket = {  }
     this.currentStream = {  }
     this.currentPeer = {  }
+
+    this.peers = new Map()
   }
 
   static initialize(dependencies) {
@@ -26,9 +28,11 @@ class Business {
       .setOnUserDisconnected(this.onUserDisconnected())
       .build()
 
-    this.currentPeer = this.peerBuilder
+    this.currentPeer = await this.peerBuilder
       .setOnError(this.onPeerError())
       .setOnConnectionOpened(this.onPeerConnectionOpened())
+      .setOnCallReceived(this.onPeerCallReceived())
+      .setOnPeerStreamReceived(this.onPeerStreamReceived())
       .build()
 
     this.addVideoStream('test01')
@@ -47,6 +51,7 @@ class Business {
   onUserConnected = function() {
     return (userID) => {
       console.log('user-connected!', userID)
+      this.currentPeer.call(userID, this.currentStream)
     }
   }
 
@@ -67,6 +72,22 @@ class Business {
       const id = peer.id 
       console.log('peer!!!', peer);
       this.socket.emit('join-room', this.room, id)
+    }
+  }
+
+  onPeerCallReceived = function() {
+    return (call) => {
+      console.log('answering call', call)
+      call.answer(this.currentStream)
+    }
+  }
+
+  onPeerStreamReceived = function() {
+    return (call, stream) => {
+      const callerID = call.peer
+      this.addVideoStream(callerID, stream)  
+      this.peers.set(callerID, { call })
+      this.view.setParticipants (this.peers.size)
     }
   }
 }
