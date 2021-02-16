@@ -1,6 +1,7 @@
 class View {
   constructor() {
     this.recorderButton = document.getElementById('record')
+    this.leaveButton = document.getElementById('leave')
   }
 
   createVideoElement({ muted = true, src, srcObject }) {
@@ -22,9 +23,9 @@ class View {
     return video
   }
 
-  renderVideo({ userID, stream = null, url = null, isCurrentID = false, muted = true }) {
+  renderVideo({ userID, stream = null, url = null, isCurrentID = false}) {
     const video = this.createVideoElement({ 
-      muted,
+      muted: isCurrentID,
       src: url, 
       srcObject: stream 
     })
@@ -73,7 +74,21 @@ class View {
     }
   }
 
+  onLeaveClick(command) {
+    return async () => {
+      command()
+
+      await Util.sleep(1000)
+
+      window.location = '/pages/home'
+    }
+  }
+
   configureRecordButton(command) {
     this.recorderButton.addEventListener('click', this.onRecordClick(command)) 
+  }
+
+  configureLeaveButton(command) {
+    this.leaveButton.addEventListener('click', this.onLeaveClick(command)) 
   }
 }
